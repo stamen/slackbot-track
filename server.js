@@ -10,9 +10,12 @@ var bodyParser = require("body-parser"),
     tz = require("moment-timezone");
 
 var app = express(),
-    client = null; // mongo client
+    client = require('mongodb').MongoClient; // mongo client
 
 var MONGO_KEY = "time-tracking",
+    MONGO_URL = env.require("MONGOHQ_URL"),
+    MONGO_USER = "",
+    MONGO_PWD = "",
     SLACK_TOKEN = env.require("SLACK_TOKEN"),
     TZ = "America/Los_Angeles", // TODO look this up per user
     TZ_OFFSET = tz.tz(TZ)._offset,
@@ -30,6 +33,12 @@ moment.lang("en-custom", {
   },
   longDateFormat : {
     LT: "h:mma"
+  }
+});
+
+client.connect(MONGO_URL, function(err, db) {
+  if(!err) {
+    console.log("We are connected");
   }
 });
 
@@ -51,9 +60,7 @@ app.post("/", function(req, res, next) {
   if (!who || !time || !channel) {
     return res.send("Um, I couldn't figure out when you meant.");
   }
-
-  // add to mongo + add times
-
+  /*
   return client.zadd(REDIS_KEY,
                      score,
                      JSON.stringify(reminder),
@@ -68,6 +75,7 @@ app.post("/", function(req, res, next) {
                                      body,
                                      moment(score).zone(TZ_OFFSET).calendar()));
   });
+  */
 });
 
 app.listen(process.env.PORT || 8080, function() {

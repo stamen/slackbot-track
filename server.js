@@ -69,14 +69,13 @@ app.get("/", function(req, res, next) {
         checks = 0;
       rsp.forEach(function(d){
         if (d.time !== 'check') {
-          hours += d.time;
+          hours += +d.time;
         } else if (d.time === 'check') {
           checks += 1;
         }
       });
 
-      return res.send(201, util.format("Ok, I've recorded %s for %s.",
-                                       hours));
+      return res.send(201, util.format("You have recorded %s days.", hours));
     });
 
 });

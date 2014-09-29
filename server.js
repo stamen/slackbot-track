@@ -123,7 +123,6 @@ app.post("/", function(req, res, next) {
     }
 
     return getUserForCurrentWeek(user, channel, function(err, rsp) {
-      rsp.forEach(function())
       return res.send(201, util.format("Ok, I've recorded %s for %s.",
                                        time,
                                        channel));

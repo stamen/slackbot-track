@@ -37,6 +37,7 @@ function getCollection(callback) {
       if(err) {
         console.log('Error: ', error);
       }
+      console.log('::::::: collection is created....')
       if (typeof callback === 'function') callback();
     });
   });

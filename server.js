@@ -44,10 +44,41 @@ function getCollection(callback) {
   });
 }
 
+function getUserForCurrentWeek(user, channel, callback) {
+  var start = +moment().startOf('week'),
+      end = +moment().endOf('week');
+
+  collection.find({user: user, channel: channel, inserttime: {$gte: start, $lt: end} },function(err, rsp) {
+    return rsp || [];
+  });
+
+}
+
+
+function getAllForWeek() {
+
+}
+
 getCollection();
 
 app.use(bodyParser.urlencoded());
 
+app.get("/", function(req, res, next) {
+  return getUserForCurrentWeek('seanc', 'all-over-the-map-chcf', function(err, rsp) {
+      var hours = 0,
+        checks = 0;
+      rsp.forEach(function(d){
+        if (d.time !=== 'check') {
+          hours += d.time;
+        } else if (d.time === 'check') {
+          checks += 1;
+        }
+      })
+      return res.send(201, util.format("Ok, I've recorded %s for %s.",
+                                       hours));
+    });
+
+});
 app.post("/", function(req, res, next) {
   if (!collection) {
     return res.send(201, "Sorry database is down!");
@@ -91,9 +122,14 @@ app.post("/", function(req, res, next) {
       return next(err);
     }
 
-    return res.send(201, util.format("Ok, I've recorded %s for %s.",
-                                     time,
-                                     channel));
+    return getUserForCurrentWeek(user, channel, function(err, rsp) {
+      rsp.forEach(function())
+      return res.send(201, util.format("Ok, I've recorded %s for %s.",
+                                       time,
+                                       channel));
+    });
+
+
 
   });
 

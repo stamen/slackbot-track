@@ -68,7 +68,7 @@ app.get("/", function(req, res, next) {
       var hours = 0,
         checks = 0;
       rsp.forEach(function(d){
-        if (d.time !=== 'check') {
+        if (d.time !== 'check') {
           hours += d.time;
         } else if (d.time === 'check') {
           checks += 1;

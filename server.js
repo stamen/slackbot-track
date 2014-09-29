@@ -122,9 +122,19 @@ app.post("/", function(req, res, next) {
       return next(err);
     }
 
-    return getUserForCurrentWeek(user, channel, function(err, rsp) {
-      return res.send(201, util.format("Ok, I've recorded %s for %s.",
-                                       time,
+    getUserForCurrentWeek(user, channel, function(err, rsp) {
+      var hours = 0,
+        checks = 0;
+      rsp.forEach(function(d){
+        if (d.time !== 'check') {
+          hours += +d.time;
+        } else if (d.time === 'check') {
+          checks += 1;
+        }
+      });
+
+      return res.send(201, util.format("Ok, I've recorded %s days for %s this week.",
+                                       hours,
                                        channel));
     });
 

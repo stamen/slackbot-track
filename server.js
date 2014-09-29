@@ -103,8 +103,15 @@ app.post("/", function(req, res, next) {
     return res.send(201, 'Sorry feature not yet implemented.');
   }
 
-  if (time === 'one') time = 1;
-  if (time === 'half') time = 0.5;
+  if (time === 'one') {
+    time = 1;
+  } else if (time === 'half') {
+    time = 0.5;
+  } else if (!isNaN(time)) {
+    time = +time;
+  } else {
+    time = 0;
+  }
 
   var now = moment();
 
@@ -117,12 +124,12 @@ app.post("/", function(req, res, next) {
     inserttime: +now
   };
 
-  collection.insert(insert, {w:1}, function(err, result) {
+  return collection.insert(insert, {w:1}, function(err, result) {
     if (err) {
       return next(err);
     }
 
-    getUserForCurrentWeek(user, channel, function(err, rsp) {
+    return getUserForCurrentWeek(user, channel, function(err, rsp) {
       var hours = 0,
         checks = 0;
       rsp.forEach(function(d){

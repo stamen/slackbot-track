@@ -33,11 +33,12 @@ function getCollection(callback) {
       console.log('Error: ', error);
       return;
     }
-    collection = db.createCollection(MONGO_COLLECTION, function(err, collection) {
+    db.createCollection(MONGO_COLLECTION, function(err, collection_) {
       if(err) {
         console.log('Error: ', error);
       }
       console.log('::::::: collection is created....')
+      collection = collection_;
       if (typeof callback === 'function') callback();
     });
   });

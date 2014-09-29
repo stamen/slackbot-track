@@ -10,42 +10,46 @@ var bodyParser = require("body-parser"),
     tz = require("moment-timezone");
 
 var app = express(),
-    client = require('mongodb').MongoClient; // mongo client
+    client = require('mongodb').MongoClient, // mongo client
+    collection = null;
 
-var MONGO_KEY = "time-tracking",
+var MONGO_COLLECTION = "time-tracking",
     MONGO_URL = env.require("MONGOHQ_URL"),
     MONGO_USER = "",
     MONGO_PWD = "",
     SLACK_TOKEN = env.require("SLACK_TOKEN"),
     TZ = "America/Los_Angeles", // TODO look this up per user
-    TZ_OFFSET = tz.tz(TZ)._offset,
-    VERBS = {
-      "/tell": ["asked", "tell"],
-      "/ask": ["told", "ask"]
-    };
+    TZ_OFFSET = tz.tz(TZ)._offset;
 
 moment.lang("en-custom", {
-  calendar : {
-    lastDay: "[yesterday at] LT",
-    sameDay: "[today at] LT",
-    nextDay: "[tomorrow at] LT",
-    lastWeek: "[last] dddd [at] LT"
-  },
   longDateFormat : {
     LT: "h:mma"
   }
 });
 
-client.connect(MONGO_URL, function(err, db) {
-  if(!err) {
-    console.log("We are connected");
-  }
-});
+function getCollection(callback) {
+  client.connect(MONGO_URL, function(err, db) {
+    if (err) {
+      console.log('Error: ', error);
+      return;
+    }
+    collection = db.createCollection(MONGO_COLLECTION, function(err, collection) {
+      if(err) {
+        console.log('Error: ', error);
+      }
+      if (typeof callback === 'function') callback();
+    });
+  });
+}
+
+getCollection();
 
 app.use(bodyParser.urlencoded());
 
 app.post("/", function(req, res, next) {
-  // TODO validate token (as a filter)
+  if (!collection) {
+    return res.send(201, "Sorry database is down!");
+  }
 
   if (req.body.text === "") {
     return res.send("To have me track time for you, /track <time> <channel>");
@@ -55,27 +59,42 @@ app.post("/", function(req, res, next) {
       who = req.body.user_name,
       time = parts.shift(),
       channel = parts.shift(),
-      cmd = VERBS[req.body.command];
+      note = parts.join(" ") || '',
+      cmd = req.body.command;
 
   if (!who || !time || !channel) {
     return res.send("Um, I couldn't figure out when you meant.");
   }
-  /*
-  return client.zadd(REDIS_KEY,
-                     score,
-                     JSON.stringify(reminder),
-                     function(err) {
+
+  if (time === 'get') {
+    return res.send(201, 'Sorry feature not yet implemented.');
+  }
+
+  if (time === 'one') time = 1;
+  if (time === 'half') time = 0.5;
+
+  var now = moment();
+
+  var insert = {
+    user: who,
+    time: time,
+    channel: channel,
+    note: note,
+    timestr: now.toISOString(),
+    inserttime: +now
+  };
+
+  collection.insert(insert, {w:1}, function(err, result) {
     if (err) {
       return next(err);
     }
 
-    return res.send(201, util.format("Ok, I'll %s %s %s %s.",
-                                     verbs[1],
-                                     who,
-                                     body,
-                                     moment(score).zone(TZ_OFFSET).calendar()));
+    return res.send(201, util.format("Ok, I've recorded %s for %s.",
+                                     time,
+                                     channel));
+
   });
-  */
+
 });
 
 app.listen(process.env.PORT || 8080, function() {

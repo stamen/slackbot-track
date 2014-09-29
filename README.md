@@ -7,7 +7,7 @@ Use slack to record your time on projects
 E.g.:
 
 ```
-/track one [channel]
+/track one
 
 slackbot: @user, 2 days have been recorded for [channel] this week
 ```

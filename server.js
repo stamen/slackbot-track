@@ -52,13 +52,13 @@ app.post("/", function(req, res, next) {
   }
 
   if (req.body.text === "") {
-    return res.send("To have me track time for you, /track <time> <channel>");
+    return res.send("To have me track time for you, /track <time>");
   }
 
   var parts = req.body.text.split(" "),
       who = req.body.user_name,
+      channel = req.body.channel_name,
       time = parts.shift(),
-      channel = parts.shift(),
       note = parts.join(" ") || '',
       cmd = req.body.command;
 

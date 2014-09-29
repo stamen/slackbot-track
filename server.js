@@ -49,7 +49,7 @@ function getUserForCurrentWeek(user, channel, callback) {
       end = +moment().endOf('week');
 
   collection.find({user: user, channel: channel, inserttime: {$gte: start, $lt: end} },function(err, rsp) {
-    callback( rsp || [] );
+    callback( error, rsp || [] );
   });
 
 }
@@ -74,6 +74,7 @@ app.get("/", function(req, res, next) {
           checks += 1;
         }
       });
+
       return res.send(201, util.format("Ok, I've recorded %s for %s.",
                                        hours));
     });

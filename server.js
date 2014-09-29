@@ -49,7 +49,7 @@ function getUserForCurrentWeek(user, channel, callback) {
       end = +moment().endOf('week');
 
   collection.find({user: user, channel: channel, inserttime: {$gte: start, $lt: end} },function(err, rsp) {
-    callback( error, rsp || [] );
+    callback( err, rsp || [] );
   });
 
 }

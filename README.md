@@ -9,14 +9,16 @@ E.g.:
 ```
 /track one
 
-slackbot: @user, 2 days have been recorded for [channel] this week
+slackbot: Ok, [user] you have 2 days & 0 checks for [channel] this week.
 ```
 
-Available arguments:
-1-9: add value to total days
-one: full day
-half: half-day
-check: will add a check mark,
-sum: return all times for user
-start: will start a timer for current project.  Calling it will also stop any other timers.
-stop: will stop timer for project
+#### Available arguments:
+* `1-9`: add value to total days
+* `one`: adds 1 day to total
+* `half`: adds 0.5 day to total
+* `check`: will add a check mark,
+* `sum`: summarizes a user's time for the week
+
+#### Not implemented:
+* `start`: will start a timer for current project.  Calling it will also stop any other timers.
+* `stop`: will stop timer for project

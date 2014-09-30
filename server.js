@@ -64,7 +64,24 @@ getCollection();
 app.use(bodyParser.urlencoded());
 
 app.get("/", function(req, res, next) {
-  return getUserForCurrentWeek('seanc', 'all-over-the-map-chcf', function(err, rsp) {
+  var now = moment();
+  var user = 'seanc',
+      channel = 'all-over-the-map-chcf';
+
+  var insert = {
+    user: user,
+    time: 1,
+    channel: channel,
+    note: '',
+    timestr: now.toISOString(),
+    inserttime: +now
+  };
+  collection.insert(insert, {w:1}, function(err, result) {
+    if (err) {
+      return next(err);
+    }
+
+    getUserForCurrentWeek(user, channel, function(err, rsp) {
       var hours = 0,
         checks = 0;
       rsp.forEach(function(d){
@@ -75,8 +92,12 @@ app.get("/", function(req, res, next) {
         }
       });
 
-      return res.send(201, util.format("You have recorded %s days.", hours));
+      return res.status(201).send(util.format("Ok, @%s you have recorded %s days for #%s this week.",
+                                      user,
+                                       hours,
+                                       channel));
     });
+  });
 
 });
 app.post("/", function(req, res, next) {
@@ -124,25 +145,36 @@ app.post("/", function(req, res, next) {
     inserttime: +now
   };
 
-  return collection.insert(insert, {w:1}, function(err, result) {
+  collection.insert(insert, {w:1}, function(err, result) {
     if (err) {
-      return next(err);
+      return rsp.status(201).send(util.format("Sorry, @%s could not write time to database.", user));
+      //return next(err);
     }
 
-    return getUserForCurrentWeek(user, channel, function(err, rsp) {
+    getUserForCurrentWeek(user, channel, function(err, rsp) {
       var hours = 0,
-        checks = 0;
+          checks = 0;
+      if (err) {
+        return rsp.status(201).send(util.format("Sorry, @%s could not get this week's time for #%s.",
+                                                  user,
+                                                  channel));
+      }
+
+      rsp = rsp || [];
       rsp.forEach(function(d){
         if (d.time !== 'check') {
-          hours += +d.time;
-        } else if (d.time === 'check') {
+          var t = +d.time || 0;
+          if (isNaN(t)) t = 0;
+          hours += t;
+        } else {
           checks += 1;
         }
       });
 
-      return res.send(201, util.format("Ok, I've recorded %s days for %s this week.",
-                                       hours,
-                                       channel));
+      return res.send(201, util.format("Ok, @%s you have recorded %s days for #%s this week.",
+                                        user,
+                                        hours,
+                                        channel));
     });
 
 

@@ -102,11 +102,11 @@ app.get("/", function(req, res, next) {
 });
 app.post("/", function(req, res, next) {
   if (!collection) {
-    return res.send(201, "Sorry database is down!");
+    return rsp.status(201).send("Sorry database is down!");
   }
 
   if (req.body.text === "") {
-    return res.send("To have me track time for you, /track <time>");
+    return rsp.status(201).send("To have me track time for you, /track <time>");
   }
 
   var parts = req.body.text.split(" "),
@@ -117,11 +117,11 @@ app.post("/", function(req, res, next) {
       cmd = req.body.command;
 
   if (!who || !time || !channel) {
-    return res.send("Um, I couldn't figure out when you meant.");
+    return rsp.status(201).send("Um, I couldn't figure out when you meant.");
   }
 
   if (time === 'get') {
-    return res.send(201, 'Sorry feature not yet implemented.');
+    return rsp.status(201).send('Sorry feature not yet implemented.');
   }
 
   if (time === 'one') {
@@ -145,18 +145,18 @@ app.post("/", function(req, res, next) {
     inserttime: +now
   };
 
-  collection.insert(insert, {w:1}, function(err, result) {
+  collection.insert(insert, {w:1}, function(err, rsp) {
     if (err) {
-      return rsp.status(201).send(util.format("Sorry, @%s could not write time to database.", user));
+      return rsp.status(201).send(util.format("Sorry, @%s could not write time to database.", who));
       //return next(err);
     }
 
-    getUserForCurrentWeek(user, channel, function(err, rsp) {
+    getUserForCurrentWeek(who, channel, function(err, rsp) {
       var hours = 0,
           checks = 0;
       if (err) {
         return rsp.status(201).send(util.format("Sorry, @%s could not get this week's time for #%s.",
-                                                  user,
+                                                  who,
                                                   channel));
       }
 
@@ -171,8 +171,8 @@ app.post("/", function(req, res, next) {
         }
       });
 
-      return res.send(201, util.format("Ok, @%s you have recorded %s days for #%s this week.",
-                                        user,
+      return rsp.status(201).send(util.format("Ok, @%s you have recorded %s days for #%s this week.",
+                                        who,
                                         hours,
                                         channel));
     });

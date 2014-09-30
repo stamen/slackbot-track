@@ -63,50 +63,13 @@ getCollection();
 
 app.use(bodyParser.urlencoded());
 
-app.get("/", function(req, res, next) {
-  var now = moment();
-  var user = 'seanc',
-      channel = 'all-over-the-map-chcf';
-
-  var insert = {
-    user: user,
-    time: 1,
-    channel: channel,
-    note: '',
-    timestr: now.toISOString(),
-    inserttime: +now
-  };
-  collection.insert(insert, {w:1}, function(err, result) {
-    if (err) {
-      return next(err);
-    }
-
-    getUserForCurrentWeek(user, channel, function(err, rsp) {
-      var hours = 0,
-        checks = 0;
-      rsp.forEach(function(d){
-        if (d.time !== 'check') {
-          hours += +d.time;
-        } else if (d.time === 'check') {
-          checks += 1;
-        }
-      });
-
-      return res.status(201).send(util.format("Ok, @%s you have recorded %s days for #%s this week.",
-                                      user,
-                                       hours,
-                                       channel));
-    });
-  });
-
-});
 app.post("/", function(req, res, next) {
   if (!collection) {
-    return rsp.status(201).send("Sorry database is down!");
+    return res.status(201).send("Sorry database is down!");
   }
 
   if (req.body.text === "") {
-    return rsp.status(201).send("To have me track time for you, /track <time>");
+    return res.status(201).send("To have me track time for you, /track <time>");
   }
 
   var parts = req.body.text.split(" "),
@@ -117,11 +80,11 @@ app.post("/", function(req, res, next) {
       cmd = req.body.command;
 
   if (!who || !time || !channel) {
-    return rsp.status(201).send("Um, I couldn't figure out when you meant.");
+    return res.status(201).send("Um, I couldn't figure out when you meant.");
   }
 
   if (time === 'get') {
-    return rsp.status(201).send('Sorry feature not yet implemented.');
+    return res.status(201).send('Sorry feature not yet implemented.');
   }
 
   if (time === 'one') {
@@ -145,23 +108,23 @@ app.post("/", function(req, res, next) {
     inserttime: +now
   };
 
-  collection.insert(insert, {w:1}, function(err, rsp) {
+  collection.insert(insert, {w:1}, function(err, result) {
     if (err) {
-      return rsp.status(201).send(util.format("Sorry, @%s could not write time to database.", who));
+      return res.status(201).send(util.format("Sorry, @%s could not write time to database.", who));
       //return next(err);
     }
 
-    getUserForCurrentWeek(who, channel, function(err, rsp) {
+    getUserForCurrentWeek(who, channel, function(err, result) {
       var hours = 0,
           checks = 0;
       if (err) {
-        return rsp.status(201).send(util.format("Sorry, @%s could not get this week's time for #%s.",
+        return res.status(201).send(util.format("Sorry, @%s could not get this week's time for #%s.",
                                                   who,
                                                   channel));
       }
 
-      rsp = rsp || [];
-      rsp.forEach(function(d){
+      result = result || [];
+      result.forEach(function(d){
         if (d.time !== 'check') {
           var t = +d.time || 0;
           if (isNaN(t)) t = 0;
@@ -171,7 +134,7 @@ app.post("/", function(req, res, next) {
         }
       });
 
-      return rsp.status(201).send(util.format("Ok, @%s you have recorded %s days for #%s this week.",
+      return res.status(201).send(util.format("Ok, @%s you have recorded %s days for #%s this week.",
                                         who,
                                         hours,
                                         channel));

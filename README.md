@@ -2,7 +2,7 @@
 
 Slack time tracker
 
-Use slack to record your time on projects
+Use slack to record your time on projects.
 
 E.g.:
 
@@ -11,6 +11,8 @@ E.g.:
 
 slackbot: Ok, [user] you have 2 days & 0 checks for [channel] this week.
 ```
+
+The channel is automatically picked up in the request, so call `/track` from the appropriate channel.
 
 #### Available arguments:
 * `1-9`: add value to total days

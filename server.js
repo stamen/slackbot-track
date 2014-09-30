@@ -54,16 +54,65 @@ function getUserForCurrentWeek(user, channel, callback) {
 
 }
 
+function normalizeTime(t) {
+  if (t === 'check') return 'check';
+  if (t === 'one') return 1;
+  if (t === 'half') return 0.5;
+  if (!isNaN(t)) return +t;
+  return 0;
+}
 
-function getAllForWeek() {
 
+function getAllForUser(user, callback) {
+  var start = +moment().startOf('week'),
+      end = +moment().endOf('week');
+
+  collection.find({user: user, inserttime: {$gte: start, $lt: end} }).toArray(function(err, items) {
+    if (err) return callback(err, null);
+
+    var times = {};
+    items = items || [];
+
+    items.forEach(function(item){
+      if (!times.hasOwnProperty(item.channel)) times[item.channel] = {days:0, checks: 0, notes: []};
+      if (item.time === 'check') {
+        times[item.channel].checks += 1;
+      } else {
+        times[item.channel].days += +item.time;
+      }
+
+      times[item.channel].notes.push(item.note);
+    });
+
+    var output = "";
+    for (var channel in times) {
+
+      output += "*#" + channel + ":* " + times[channel].days + " days, " + times[channel].checks + " checks\n";
+    }
+
+    callback( null, output );
+  });
 }
 
 getCollection();
 
 app.use(bodyParser.urlencoded());
 
+app.get("/", function(req, res, next) {
+  res.header('link_names' , 1 );
+  return getAllForUser('seanc', function(err, result){
+    if (err) {
+      return res.status(201).send('Error in retrieving current week times.')
+    }
+    return res.status(201).send(result);
+  });
+
+  res.status(201).send('Hi monkey!');
+});
+
 app.post("/", function(req, res, next) {
+  res.header('link_names' , 1 );
+
   if (!collection) {
     return res.status(201).send("Sorry database is down!");
   }
@@ -83,19 +132,17 @@ app.post("/", function(req, res, next) {
     return res.status(201).send("Um, I couldn't figure out when you meant.");
   }
 
-  if (time === 'get') {
-    return res.status(201).send('Sorry feature not yet implemented.');
+  if (time === 'sum') {
+    return getAllForUser(who, function(err, result){
+      if (err) {
+        return res.status(201).send('Error in retrieving current week times.')
+      }
+      return res.status(201).send(result);
+    });
+    //return res.status(201).send('Sorry feature not yet implemented.');
   }
 
-  if (time === 'one') {
-    time = 1;
-  } else if (time === 'half') {
-    time = 0.5;
-  } else if (!isNaN(time)) {
-    time = +time;
-  } else {
-    time = 0;
-  }
+  time = normalizeTime(time);
 
   var now = moment();
 
